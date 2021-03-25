@@ -97,9 +97,9 @@
     - On each timestep, each element of the gates can be open(1), closed(0),  or somewhere in-between.
     - The gates are dynamic: their value is computed based on the current context
 - Architectures
-![LSTM equations](https://github.com/Cecil-Zhang/AI-Memo/img/LSTM-equations.jpg?raw=true)
-![LSTM gates](https://github.com/Cecil-Zhang/AI-Memo/img/LSTm.jpg?raw=true)
+![LSTM equations](https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/LSTM-equations.jpg?raw=true)
+![LSTM gates](https://github.com/Cecil-Zhang/AI-Memo/img/blob/main/LSTm.jpg?raw=true)
 
 <img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
-![alt text](https://github.com/Cecil-Zhang/AI-Memo/img/.jpg?raw=true)
+![alt text](https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/.jpg?raw=true)
 
