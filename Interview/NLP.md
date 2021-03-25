@@ -1,23 +1,24 @@
 ## Word Embeddings
 ### Word Representing Ways
 - As discrete symbols
-    - one-hot encoding
+    - `one-hot encoding`
     - problems: words are  infinite, no natural notion of similarity (one-hot vectors are orthogonal)
 - As distributional semantics (by their contexts)
     - A word’s meaning is given by the words that frequently appear close-by (One of the most successful ideas of modern statistical NLP! )
     - When a word w appears in a text, its context is the set of words that appear nearby (within a fixed-size window). 
     - How: count-based vs. shallow window-based
     - Count-based:
-        - Rely on matrix factorization, e.g. LSA, HAL. 
+        - Rely on matrix factorization, e.g. `LSA`, `HAL`. 
         - Effectively leverage global statistical information and primarily used to capture word similarities
         - Do poorly on tasks such as word analogy
     - Shallow window-based
-        - Learn word embeddings by making predictions in local context windows, e.g. word2vec
+        - Learn word embeddings by making predictions in local context windows, e.g. `word2vec`
         - Able to capture complex linguistic patterns beyond word similarity
         - Fail to make use of the global co-occurrence statistics
-    - GloVe (combined both)
+    - `GloVe` (combined both)
 - Contextual Word Representations
-    - Train RNN on large corpus to predict next words, then stuck LSTM layers. These layers can be used to produce context-specific representations.
+    - Train RNN on large corpus to predict next words, then stuck `LSTM` layers. These layers can be used to produce context-specific representations.
+
 
 ### Briefly introduce `word2vec`.
 - `word2vec (Mikolov et al. 2013)` is a family of algorithms which build dense word vectors by predicting *"context word"* given *"center word"* (or vice versa).
@@ -53,6 +54,7 @@
     - Frequent words like “the”, “a” doesn’t tell much about the context word, and they’re far more than needed
     - For each word we encounter in our training text, there is a chance that we will effectively delete it from the text. The probability (1-sampling rate) that we cut the word is related to the word’s frequency.
 
+
 ### Explain `GloVe`
 - `GloVe` stands for Global Vectors for Word Representation. Combining the best of both worlds (count based vs. direct prediction), GloVe consists of a weighted least squares model that trains on global word-word co-occurrence counts and thus make efficient use of statistics.
 - Crucial insight: Ratios of co-occurrence probabilities can encode meaning components
@@ -62,9 +64,42 @@
 ### Explain `fastText`. What's the difference compared to `word2vec`?
 - A library that allows users to learn text representations and text classifiers.
 - Key insight: use the internal structure of a word (sub-word) to improve vector representations obtained from `word2vec`. (sum of vectors of character n-grams and the word itself)
-- Comparison:
+- Comparison with `word2vec`:
     1. Better performance on syntactic word analogy tasks, but degraded performance on semantic analogy tasks.
     2. Slower to train due to added overhead of n-grams.
     3. Better representing out-of-vocabulary words.
     4. Able to classify text. (Simple 1 hidden layer NN, input: sum of input word vectors, output: (hierechical) softmax) 
+
+
+
+## Recurrent Neural Networks
+### Summary
+- Motivation: a neural architecture to deal with any length input
+- Variants: vanilla RNN, `GRU`, `LSTM`
+- Advantages
+    - Can process any length input
+    - Computation for step t can (in theory) use information from many steps back
+    - Model size doesn’t increase for longer input 
+    - Same weights applied on every timestep, so there is symmetry in how inputs are processed.
+- Disadvantages
+    - Recurrent computation is slow (because it is sequential, it cannot be parallelized)
+    - In practice, it’s difficult to access information from many steps back
+
+
+### LSTM (Long Short-Term Memory)
+- Motivation: proposed in 1997 as a solution to vanishing gradients in vanilla RNN
+- On each step _t_, there is a hidden state *h_t* and cell state *c_t*
+    - Both are vector length *n*
+    - The cell state stores long-term information
+    - The LSTM can erase, write and read information from the cell
+- The selection of which information is erased/written/read is controlled by three corresponding gates
+    - The gates are also vector length *n*
+    - On each timestep, each element of the gates can be open(1), closed(0),  or somewhere in-between.
+    - The gates are dynamic: their value is computed based on the current context
+- Architectures
+![LSTM equations](https://github.com/Cecil-Zhang/AI-Memo/img/LSTM-equations.jpg?raw=true)
+![LSTM gates](https://github.com/Cecil-Zhang/AI-Memo/img/LSTm.jpg?raw=true)
+
+<img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
+![alt text](https://github.com/Cecil-Zhang/AI-Memo/img/.jpg?raw=true)
 
