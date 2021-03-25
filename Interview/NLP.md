@@ -88,7 +88,7 @@
 
 ### LSTM (Long Short-Term Memory)
 - Motivation: proposed in 1997 as a solution to vanishing gradients in vanilla RNN
-- On each step _t_, there is a hidden state *h_t* and cell state *c_t*
+- On each step *t*, there is a hidden state *h_t* and cell state *c_t*
     - Both are vector length *n*
     - The cell state stores long-term information
     - The LSTM can erase, write and read information from the cell
@@ -96,9 +96,30 @@
     - The gates are also vector length *n*
     - On each timestep, each element of the gates can be open(1), closed(0),  or somewhere in-between.
     - The gates are dynamic: their value is computed based on the current context
-- Architectures
-![LSTM equations](https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/LSTM-equations.jpg?raw=true | width=500)
-![LSTM gates](https://github.com/Cecil-Zhang/AI-Memo/img/blob/main/LSTM.jpg?raw=true | width=500)
+- [Detailed Architectures](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)
+- Key to vanishing gradients: LSTM can preserve information over many timesteps via setting forget gate to 1 and input gate to 0
+<img src="https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/LSTM-equations.jpg?raw=true" width="500"/>
+
+
+### GRU (Gated Recurrent Units)
+- Motivation: proposed in 2014 as a simpler alternative to the LSTM
+- LSTM vs. GRU
+    - On each step *t*, LSTM has a hidden state *h_t* and cell state *c_t*, GRU only has a hidden state *h_t*
+    - Rule of thumb: LSTM is a good default choice (especially if your data has particularly long dependencies, or you have lots of training data); Switch to GRUs for speed and fewer parameters
+
+
+### Bidirectional RNNs
+- On each step *t*, compute two hidden states for forward and backward RNNs respectively (in general, two RNNs have separate weights)
+- Bidirectional RNNs are only applicable if you have access to the entire input sequence.
+- If you do have entire input sequence (e.g. any kind of encoding), bidirectionality is powerful (you should use it by default).
+
+
+### Multi-layer RNNs (Stacked RNNs)
+- Stack multiple RNNs
+    - The hidden states from RNN layer i are the inputs to RNN layer i+1
+- This allows the network to compute more complex representations. 
+    - The lower RNNs should compute lower-level features and the higher RNNs should compute higher-level features. 
+- High-performing RNNs are often multi-layer (but aren’t as deep as convolutional or feed-forward networks)
 
 <img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
 ![alt text](https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/.jpg?raw=true)
