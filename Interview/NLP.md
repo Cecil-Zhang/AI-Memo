@@ -16,6 +16,14 @@
         - Able to capture complex linguistic patterns beyond word similarity
         - Fail to make use of the global co-occurrence statistics
     - `GloVe` (combined both)
+- Sub-word representations
+    - Character-level models: word embeddings are composed from character embeddings
+    - Sub-word models: word embeddings are composed from word piece embeddings
+        - same architectures as for word-level models, but use smaller units "word pieces"
+            - `BPE`
+            - `WordPiece`
+        - Hybrid architectures: main model has words, something else for characters
+    - Advantages: solve OOV problems, better at syntactic
 - Contextual Word Representations
     - Train RNN on large corpus to predict next words, then stuck `LSTM` layers. These layers can be used to produce context-specific representations.
 
@@ -71,6 +79,33 @@
     4. Able to classify text. (Simple 1 hidden layer NN, input: sum of input word vectors, output: (hierechical) softmax) 
 
 
+### Briefly introduce BPE (Byte Pair Encoding)
+- Originally a compression algorithm: most frequent byte pair -> new byte (replace bytes with character ngrams)
+- 1. Start with a unigram vocabulary of all (Unicode) characters in data (准备语料，生成字节级词表，确定目标词表大小)
+- 2. Most frequent ngram pairs -> a new ngram (统计每一个连续字节对的出现频率，选择最高频者合并为新的subword并加入词表)
+- 3. Have a target vocabulary size and stop when you reach it (重复第二步直到达到目标词表大小或下一个最高频率为1)
+
+
+## Language Models
+### What is Language Models
+- A system that performs the task of predicting what word comes next. 
+- More formally, given sequence of words x_1, x_2, ..., x_t, compute the probability distribution of the next word x_(t+1): P(x_(t+1)|x_t,...,x_1)
+- Conditional Language Modeling: the task of predicting the next word, given the words so far y_1,...,y_t, and also some other input x
+    - Machine Translation (x=source sentence, y=target sequence)
+    - Summarization (x=input text, y=summarized text)
+    - Dialogue (x=dialogue history, y=next utterance)
+
+
+### N-gram Language Models
+- Definition: to compute the probabilities mentioned above, the count of each n-gram could be compared against the frequency of each word
+- A n-gram is a chunk of n consecutive words. Unigram, bigram, trigram, 4-grams.
+- Assumption: x_(t+1) only depends on the preceding n-1 words (Markov Assumption), P(x_(t+1)|x_t,...,x_1)=P(x_(t+1)|x_t,...,x_(t-n+2))=P(x_(t+1),x_t,...,x_(t-n+2))/P(x_t,...,x_(t-n+2))=count(students opened their w)/count(students opened their)
+
+
+### What's the difference between HMM and N-gram model
+- HMM assumes x_t only depends on the previous x_(t-1) and x_t is invisible.
+- N-gram assumes x_(t+1) only depends on the preceding n-1 words and x_t is visible.
+
 
 ## Recurrent Neural Networks
 ### Summary
@@ -120,6 +155,77 @@
 - This allows the network to compute more complex representations. 
     - The lower RNNs should compute lower-level features and the higher RNNs should compute higher-level features. 
 - High-performing RNNs are often multi-layer (but aren’t as deep as convolutional or feed-forward networks)
+
+
+### Vanishing/Exploding gradients in RNN
+- Gradients get smaller/larger and smaller/larger as it backpropagates further.
+- Proof: gradients of RNN invlvoes exponents of the same matrix (RNN shares weight matrix). Thus gradients become smaller/larger, when the matrix is small/large.
+- Solution: LSTM for vanishing gradients, gradient clip for exploding gradients.
+- *Details at CS224N-Note: Lecture 07*
+
+
+
+## State-of-the-art Architectures
+### Introduce `Attention`
+- Motivation: Information bottleneck problem of seq2seq model - encoding of the source sentence needs to capture all information about the source sentence.
+- Core idea: on each step of the decoder, use direct connection to the encoder to focus on a particular part of the source sequence.
+- Attention in equation
+    1. We have encoder hidden states h_1, ..., h_n
+    2. On timestep t, we have decoder hidden state s_t
+    3. We get attention socres for this step: e^t=[s_t*h_1, ..., s_t*h_n]  (dot product)
+    4. We take softmax to get the attention distribution: \alpha^t=softmax(e^t)
+    5. Use \alpha^t to get a weighted sum of the encoder hidden states to get the attention output a^t
+    6. Finally we concatenate a^t with s^t and proceed as before
+- Advantages
+    - Significantly improves NMT performance
+    - Solves bottleneck problem
+    - Helps with vanishing gradient problem (provides shortcut to faraway states)
+    - Provides some interpretability
+- General form of attention: given a set of vector **values**, and a vector **query**, **attention** is a technique to compute a weighted sum of the **values**, dependent on the **query**
+- Attention Variants
+    - Basic dot-product attention
+    - Multiplicative attention
+    - Additive attention
+
+
+### Introduce `Transformer`
+- Motivation: Learn context representations of variable length data
+    - RNN: inhibits parallelization, no explicit modeling of long and short range dependencies, no hierarchy
+    - CNN: long-distance dependencies require many layers
+    - Why not use attention for representations
+- Input Embedding
+    - word embeddings + positional embeddings (provides meaningflu distances)
+    - List of vectors, size of list is a hyperparameter. Usually the length of the longest sentence.
+- Multi-headed Self-Attention
+    - Self-Attention: Self-attention is the method the Transformer uses to bake the “understanding” of other relevant words into the one we’re currently processing.
+    - Multi-headed
+        - It expands the model’s ability to focus on different positions.
+        - It gives the attention layer multiple "representation subspaces".
+- Residual
+    - Make deep network training healthy
+    - Residuals carry positional information to higher layers, among other information
+- Decoder side
+    - One more sub-layer in the middle compared to encoder side: Encoder-Decoder Attention sub-layer which create its Query matrix from the layer below it, and takes the Keys and Values matrix from the output of the encoder stack.
+    - The self-attention layer is only allowed to attend to earlier positions in the output sequence. This is done by masking future positions (setting them to *-inf*) before the softmax step in the self-attention calculation.
+- Details at https://jalammar.github.io/illustrated-transformer/
+
+
+### Introduce `BERT`
+- Motivation: Language models only use **left** context or **right** context, but language understanding is bidirectional.
+    - Why are LMs are unidirectional?
+        - Directionality is needed to generate a well-formed probability distribution
+        - Words can "see themselves" in a bidirectional encoder
+- BERT contribution: further generalizing unsupervised pre-training to deep **directional** architectures, allowing the same pre-trained model to successfully tackle a broad set of NLP tasks.
+- Pre-training Task #1: Masked LM (Exploit bidirectional context)
+    - Mask out k% (k=15) of the input words, and then predict the masked words. Large k: expensive to train, small k: not enough context.
+    - Problem: Mask token never seen at fine-tuning. Solution: don't replace mask token with [MASK] all the time, instead 80% with [MASK], 10% with random word, 10% with original word.
+- Pre-training Task #2: Next Sentence Prediction
+    - Motivation: many downstream tasks such as QA and NLI are based on understanding the relationship between two sentences, which is not directly captured by language modeling.
+    - Predict whether sentence B is actual sentence that proceeds Sentence A.
+    - The first token of every sequence is always a special classification token [CLS]. The final hidden state corresponding to this token is used as the aggregate sequence representation for classification tasks.
+- Input representation: each token is sum of three embeddings: token embeddings + segment embeddings + position embeddings.
+
+
 
 <img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
 ![alt text](https://github.com/Cecil-Zhang/AI-Memo/blob/main/img/.jpg?raw=true)
